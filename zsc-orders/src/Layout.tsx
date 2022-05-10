@@ -21,6 +21,7 @@ import { Inventory } from './Inventory';
 import App from './App';
 import { Home } from './Home';
 import { Orders } from './Orders';
+import { InventoryAdd } from './InventoryAdd';
 
 const drawerWidth = 240;
 
@@ -80,6 +81,7 @@ export default function Layout() {
           <Route path="/" element={<Home />} />
           <Route path="Inventory" element={<Inventory />} />
           <Route path="Orders" element={<Orders />} />
+          <Route path="Inventory-Add" element={<InventoryAdd />} />
         </Routes>
       </Box>
     </Box>
