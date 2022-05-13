@@ -11,6 +11,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { FormHelperText } from '@mui/material';
+import axios from 'axios';
 
 const materialSources = [
     {
@@ -55,6 +56,14 @@ const Inventorycard = () => {
     const [materialType, setMaterialType] = React.useState("");
     const [description, setDescription] = React.useState("");
 
+    const [materialTypeList, setMaterialTypeList] = React.useState<string[]>([
+        "Videos",
+        "Other",
+        "Posters"
+    ]);
+
+
+
     const [message, setMessage] = React.useState("");
 
     const handleSkuChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,13 +83,25 @@ const Inventorycard = () => {
     }
 
     const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTitle(e.target.value as string);
+        setDescription(e.target.value as string);
     }
 
     const onSubmit = () => {
         const isValid = sku !== "" && source !== "" && title !== "" && materialType !== "";
         if (isValid) {
-            setMessage("Form submitted successfully");
+            const url = "https://localhost:44336/api/Inventory";
+            const payload = {
+                sku: sku,
+                materialSource: source,
+                title: title,
+                materialType: materialType,
+                description: description
+            }
+            axios.post(url, payload).then((d) => {
+                console.log("data:", d, d.data);
+                setMessage("Form submitted successfully");
+            })
+
 
         } else {
             setMessage("Please fill required fields.")
@@ -139,7 +160,7 @@ const Inventorycard = () => {
                 </Grid>
                 <Grid container item xs={12}>
                     <Grid item xs={2}  >
-                        Source
+                        Material Type
                     </Grid>
                     <Grid item xs={10}>
                         {/* <TextField
@@ -153,7 +174,7 @@ const Inventorycard = () => {
                         <FormControl fullWidth>
                             <InputLabel id="material-type-input-label">Mat. Type</InputLabel>
                             <Select
-                                error={ materialType === ""}
+                                error={materialType === ""}
                                 labelId="material-type-select-label"
                                 id="material-type-select"
                                 size="small"
@@ -161,7 +182,10 @@ const Inventorycard = () => {
                                 label="Mat. Type"
                                 onChange={handleMaterialTypeChange}
                             >
-                                <MenuItem value={'Videos'}>Videos</MenuItem>
+                                {materialTypeList.map((mType) =>
+                                    <MenuItem value={mType}>{mType}</MenuItem>
+                                )}
+                                {/* <MenuItem value={'Videos'}>Videos</MenuItem>
                                 <MenuItem value={'Paycheck Stuffers'}>Paycheck Stuffers</MenuItem>
                                 <MenuItem value={'Posting Notices'}>Posting Notices</MenuItem>
                                 <MenuItem value={'Claim Kits'}>Claim Kits</MenuItem>
@@ -171,12 +195,12 @@ const Inventorycard = () => {
                                 <MenuItem value={'Folders'}>Folders</MenuItem>
                                 <MenuItem value={'Binders'}>Binders</MenuItem>
                                 <MenuItem value={'Flyers'}>Flyers</MenuItem>
-                                <MenuItem value={'Videos'}>Brochures</MenuItem>
+                                <MenuItem value={'Brochures'}>Brochures</MenuItem>
                                 <MenuItem value={'Policy Envelopes'}>Policy Envelopes</MenuItem>
                                 <MenuItem value={'Zenith Paper'}>Zenith Paper</MenuItem>
-                                <MenuItem value={'Covers'}>Covers</MenuItem>
+                                <MenuItem value={'Covers'}>Covers</MenuItem> */}
                             </Select>
-                            {source === "" && <FormHelperText id="my-helper-text">Select one option from dropdown.</FormHelperText>}
+                            {materialType === "" && <FormHelperText id="my-helper-text">Select one option from dropdown.</FormHelperText>}
                         </FormControl>
                     </Grid>
                 </Grid>
