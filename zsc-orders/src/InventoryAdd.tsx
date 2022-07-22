@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, Grid, TextField, Toolbar } from "@mui/material";
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { AlignHorizontalCenter } from '@mui/icons-material';
+// import Typography from '@mui/material/Typography';
+// import { AlignHorizontalCenter } from '@mui/icons-material';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -13,21 +13,21 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { FormHelperText } from '@mui/material';
 import axios from 'axios';
 
-const materialSources = [
-    {
-        value: 'Print',
-        label: 'Print',
-    },
-    {
-        value: 'Stock',
-        label: 'Stock',
-    },
-];
+// const materialSources = [
+//     {
+//         value: 'Print',
+//         label: 'Print',
+//     },
+//     {
+//         value: 'Stock',
+//         label: 'Stock',
+//     },
+// ];
 
-const options = [
-    { label: 'Stock', value: 'Stock' },
-    { label: 'Print', value: 'Print' },
-];
+// const options = [
+//     { label: 'Stock', value: 'Stock' },
+//     { label: 'Print', value: 'Print' },
+// ];
 
 
 
@@ -55,16 +55,17 @@ const Inventorycard = () => {
     const [title, setTitle] = React.useState("");
     const [materialType, setMaterialType] = React.useState("");
     const [description, setDescription] = React.useState("");
-
-    const [materialTypeList, setMaterialTypeList] = React.useState<string[]>([
+    const [materialTypeList] = React.useState<string[]>([
         "Videos",
         "Other",
         "Posters"
     ]);
 
-
-
     const [message, setMessage] = React.useState("");
+    const [skuValidation, setSkuValidation] = React.useState<any>({
+        isError: true,
+        message: "Validation Error"
+    });
 
     const handleSkuChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSku(e.target.value as string);
@@ -100,7 +101,25 @@ const Inventorycard = () => {
             axios.post(url, payload).then((d) => {
                 console.log("data:", d, d.data);
                 setMessage("Form submitted successfully");
+            }).catch(function (error) {
+                if (error.response) {
+                    // Request made and server responded
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    console.log(error.response.headers);
+                    setMessage(error.response.data.message);
+                } else if (error.request) {
+                    // The request was made but no response was received
+                    console.log(error.request);
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    console.log('Error', error.message);
+                }
+                // Need to add logic to process status (i.e. 400 error)
+
             })
+
+
 
 
         } else {
@@ -109,6 +128,20 @@ const Inventorycard = () => {
 
     }
 
+    const validateSKU = () => {
+        console.log('Message', 'OnBlur');
+        if (sku !== "") {
+            const url = "https://localhost:44336/api/Inventory/" + sku;
+            axios.get(url).then((response) => {
+                console.log('Response', response);
+                setSkuValidation({ isError: !response.data, message: (!response.data ? "Cannot enter duplicate SKU!" : "") });
+            })
+        }
+    }
+
+    useEffect(() => {
+        setSkuValidation({ isError: (sku === ""), message: ((sku === "") ? "SKU required" : "") });
+    }, [sku]);
 
     return (<React.Fragment>
         <CardContent sx={{ width: 700, }}>
@@ -123,15 +156,16 @@ const Inventorycard = () => {
                     <Grid item xs={10}>
                         {/* <TextField sx={{ width: 250, }} */}
                         <TextField
-                            error={sku === ""}
-                            helperText={sku === "" ? "SKU is required" : ""}
+                            error={skuValidation.isError}
+                            helperText={skuValidation.message}
                             required
                             id="sku-required"
-                            label="Required"
+                            label="required"
                             variant="outlined"
                             size="small"
                             value={sku}
                             onChange={handleSkuChange}
+                            onBlur={validateSKU}
                         />
                     </Grid>
                 </Grid>
@@ -141,14 +175,14 @@ const Inventorycard = () => {
                     </Grid>
                     <Grid item xs={10}>
                         <FormControl fullWidth>
-                            <InputLabel id="demo-simple-select-label">Source</InputLabel>
+                            <InputLabel id="demo-simple-select-label">required</InputLabel>
                             <Select
-                                error={source === ""}
+                                error={source === "required"}
                                 labelId="demo-simple-select-label"
                                 id="demo-simple-select"
                                 size="small"
                                 value={source}
-                                label="Source"
+                                label="required"
                                 onChange={handleSourceChange}
                             >
                                 <MenuItem value={'Stock'}>Stock</MenuItem>
@@ -163,29 +197,21 @@ const Inventorycard = () => {
                         Material Type
                     </Grid>
                     <Grid item xs={10}>
-                        {/* <TextField
-                            required
-                            id="material-type-required"
-                            label="Required"
-                            variant="outlined"
-                            // size="small"
-                            fullWidth
-                        /> */}
                         <FormControl fullWidth>
-                            <InputLabel id="material-type-input-label">Mat. Type</InputLabel>
+                            <InputLabel id="material-type-input-label">required</InputLabel>
                             <Select
-                                error={materialType === ""}
+                                error={materialType === "please select a Material Type"}
                                 labelId="material-type-select-label"
                                 id="material-type-select"
                                 size="small"
                                 value={materialType}
-                                label="Mat. Type"
+                                label="required"
                                 onChange={handleMaterialTypeChange}
                             >
                                 {materialTypeList.map((mType) =>
                                     <MenuItem value={mType}>{mType}</MenuItem>
                                 )}
-                                {/* <MenuItem value={'Videos'}>Videos</MenuItem>
+                                <MenuItem value={'Videos'}>Videos</MenuItem>
                                 <MenuItem value={'Paycheck Stuffers'}>Paycheck Stuffers</MenuItem>
                                 <MenuItem value={'Posting Notices'}>Posting Notices</MenuItem>
                                 <MenuItem value={'Claim Kits'}>Claim Kits</MenuItem>
@@ -198,7 +224,7 @@ const Inventorycard = () => {
                                 <MenuItem value={'Brochures'}>Brochures</MenuItem>
                                 <MenuItem value={'Policy Envelopes'}>Policy Envelopes</MenuItem>
                                 <MenuItem value={'Zenith Paper'}>Zenith Paper</MenuItem>
-                                <MenuItem value={'Covers'}>Covers</MenuItem> */}
+                                <MenuItem value={'Covers'}>Covers</MenuItem>
                             </Select>
                             {materialType === "" && <FormHelperText id="my-helper-text">Select one option from dropdown.</FormHelperText>}
                         </FormControl>
@@ -215,7 +241,7 @@ const Inventorycard = () => {
                             required
                             id="title-required"
                             value={title}
-                            label="Required"
+                            label="required"
                             variant="outlined"
                             size="small"
                             onChange={handleTitleChange}
@@ -231,7 +257,7 @@ const Inventorycard = () => {
                         <TextField sx={{ width: 650 }}
                             id="description-optional"
                             value={description}
-                            label="Optional"
+                            label=""
                             variant="outlined"
                             size="small"
                             onChange={handleDescriptionChange}
@@ -239,17 +265,6 @@ const Inventorycard = () => {
                     </Grid>
                 </Grid>
             </Grid>
-            {/* <Typography variant="h5" component="div">
-          be{bull}nev{bull}o{bull}lent
-        </Typography>
-        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-          adjective
-        </Typography>
-        <Typography variant="body2">
-          well meaning and kindly.
-          <br />
-          {'"a benevolent smile"'}
-        </Typography> */}
         </CardContent>
         <CardActions>
             <Grid container spacing="1">
@@ -257,7 +272,7 @@ const Inventorycard = () => {
                     <Button size="small" onClick={onSubmit}>Save</Button>
                 </Grid>
                 <Grid item xs >
-                    <h1>{message}</h1>
+                    <h3>{message}</h3>
                 </Grid>
             </Grid>
         </CardActions>
